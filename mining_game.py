@@ -1,28 +1,58 @@
 import streamlit as st
 import time
 import pandas as pd
+import streamlit as st
+import pandas as pd
 import firebase_admin
 from firebase_admin import credentials, firestore
+from firebase_admin.exceptions import FirebaseError
 
-# Initialize game state
+# Initialize Firebase (with error handling)
 if not firebase_admin._apps:
-    cred = credentials.Certificate("firebase-key.json")  # Download from Firebase console
-    firebase_admin.initialize_app(cred)
+    try:
+        cred = credentials.Certificate("firebase-key.json")  # Your downloaded file
+        firebase_admin.initialize_app(cred)
+        st.success("Connected to Firebase!")
+    except FileNotFoundError:
+        st.error("Firebase key file missing! Download it from Firebase Console")
+    except FirebaseError as e:
+        st.error(f"Firebase error: {e}")
 
-db = firestore.client()
-
-# Save/Load scores
+# Leaderboard functions
 def update_leaderboard(name, score):
-    db.collection("scores").document(name).set({"score": score})
+    try:
+        db = firestore.client()
+        db.collection("scores").document(name).set({
+            "score": score,
+            "timestamp": firestore.SERVER_TIMESTAMP
+        })
+    except Exception as e:
+        st.error(f"Failed to save: {e}")
 
 def get_leaderboard():
-    return pd.DataFrame([doc.to_dict() for doc in db.collection("scores").stream()])
+    try:
+        db = firestore.client()
+        docs = db.collection("scores").order_by("score", direction=firestore.Query.DESCENDING).limit(10).stream()
+        return pd.DataFrame([{"Name": doc.id, "Score": doc.to_dict()["score"]} for doc in docs])
+    except Exception as e:
+        st.error(f"Failed to load leaderboard: {e}")
+        return pd.DataFrame()
 
 # UI
+st.title("⛏️ Mining Leaderboard")
 name = st.text_input("Your name")
-if st.button("Submit score"):
-    update_leaderboard(name, st.session_state.rocks)
-st.write("Leaderboard:", get_leaderboard().sort_values("score", ascending=False))
+if st.button("Submit your score"):
+    if name:
+        update_leaderboard(name, st.session_state.rocks)
+    else:
+        st.warning("Enter a name first!")
+
+st.write("## Top Miners")
+leaderboard = get_leaderboard()
+if not leaderboard.empty:
+    st.dataframe(leaderboard, hide_index=True)
+else:
+    st.info("No scores yet. Be the first!")
 
 #actually starting the game
 if 'rocks' not in st.session_state:
