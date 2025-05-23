@@ -47,23 +47,25 @@ if st.button("⛏️ Mine", key="mine"):
     st.toast(f"+{amount} rocks!")  # Nice visual feedback
 
 # Upgrades section
-st.header("Upgrades")
 for upgrade in BASE_COSTS.keys():
     cost = calculate_cost(upgrade)
+    current_level = st.session_state.upgrade_levels[upgrade]  # Get current level
+    
     col1, col2 = st.columns([3, 1])
     with col1:
-       disabled = st.session_state.rocks < cost
-if disabled:
-    st.button(f"{upgrade} (Lv {level+1}) - {cost} rocks", disabled=True)
-else:
-    if st.button(f" {upgrade} (Lv {level+1}) - {cost} rocks"):
-        # Purchase logic here
+        disabled = st.session_state.rocks < cost
+        if st.button(
+            f"{upgrade} (Lv {current_level+1}) - {cost} rocks",  # Use current_level here
+            disabled=disabled,
+            key=f"buy_{upgrade}"
+        ):
             st.session_state.rocks -= cost
             st.session_state.upgrade_levels[upgrade] += 1
             st.rerun()
+    
     with col2:
-        if st.session_state.upgrade_levels[upgrade] > 0:
-            st.success(f"Lv {st.session_state.upgrade_levels[upgrade]}")
+        if current_level > 0:
+            st.success(f"Lv {current_level}")
 
 # Auto-mining
 if st.session_state.upgrade_levels["Auto Miner"] > 0:
