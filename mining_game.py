@@ -1,3 +1,25 @@
+# At the top
+import json
+
+# On startup
+if 'loaded' not in st.session_state:
+    try:
+        with open('save.json') as f:
+            data = json.load(f)
+            st.session_state.update(data)
+    except FileNotFoundError:
+        pass
+
+# When rocks change
+if st.session_state.rocks % 10 == 0:  # Auto-save every 10 rocks
+    with open('save.json', 'w') as f:
+        json.dump({
+            'rocks': st.session_state.rocks,
+            'upgrade_active': st.session_state.upgrade_active
+        }, f)
+
+
+
 import streamlit as st
 import time
 
