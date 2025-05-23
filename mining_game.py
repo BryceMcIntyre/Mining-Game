@@ -21,7 +21,7 @@ UPGRADE_COSTS = {
 }
 
 # --- Streamlit UI ---
-st.title("💎 Mining Game (Web Edition)")
+st.title("For those who yearn for the mines:")
 
 # Display rocks at the top
 st.header(f"Rocks: {st.session_state.rocks}")
