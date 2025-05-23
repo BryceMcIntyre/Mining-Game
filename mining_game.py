@@ -9,7 +9,8 @@ if 'rocks' not in st.session_state:
         "Auto Miner": False,
         "Super Pickaxe": False,
         "Diamond Drill": False,
-        "Emerald Drill": False
+        "Emerald Drill": False,
+        "Ruby Blaster": False,
     }
 
 # Upgrade costs
@@ -17,7 +18,8 @@ UPGRADE_COSTS = {
     "Auto Miner": 10,
     "Super Pickaxe": 50,
     "Diamond Drill": 100,
-    "Emerald Drill": 1000
+    "Emerald Drill": 1000,
+    "Ruby Blaster": 3000
 }
 
 # --- Streamlit UI ---
@@ -56,6 +58,14 @@ for upgrade, cost in UPGRADE_COSTS.items():
                     st.session_state.auto_miners += 1
                 st.success(f"Purchased {upgrade}!")
                 st.rerun()
+
+                st.session_state.rocks -= cost
+                st.session_state.upgrade_active[upgrade] = True
+                if upgrade == "Ruby Blaster":
+                    st.session_state.ruby_blasters += 1
+                st.success(f"Purchased {upgrade}!")
+                st.rerun()
+                
     with col2:
         if st.session_state.upgrade_active[upgrade]:
             st.success("✔️ Owned")
@@ -64,4 +74,9 @@ for upgrade, cost in UPGRADE_COSTS.items():
 if st.session_state.upgrade_active["Auto Miner"]:
     time.sleep(1)  # Wait 1 second
     st.session_state.rocks += st.session_state.auto_miners
+    st.rerun()
+    
+if st.session_state.upgrade_active["Ruby Blaster"]:
+    time.sleep(0.1)  # Wait 1 second
+    st.session_state.rocks += st.session_state.ruby_blasters
     st.rerun()
