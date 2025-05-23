@@ -1,5 +1,9 @@
+from streamlit.components.v1 import html
 import streamlit as st
 import time
+
+st.set_page_config(layout="centered")  # Stabilizes layout
+html("<style>#root { overflow-anchor: none; }</style>")  # Prevents jump
 
 # Initialize game state
 if 'game_initialized' not in st.session_state:
@@ -29,16 +33,18 @@ def calculate_cost(upgrade):
 st.title("⛏️ The Mindless Miner")
 
 # Display rocks
-rocks_display = st.empty()  # Placeholder we'll update
+st.header(f"Rocks: {st.session_state.rocks}") 
 
 # Mining button
-if st.button("⛏️ Mine"):
-    amount = 1
-    amount += st.session_state.upgrade_levels["Super Pickaxe"] * 1
-    amount += st.session_state.upgrade_levels["Diamond Drill"] * 2
-    amount += st.session_state.upgrade_levels["Emerald Drill"] * 5
-    amount += st.session_state.upgrade_levels["Ruby Blaster"] * 10
+if st.button("⛏️ Mine", key="mine"):
+    amount = 1 + (
+        st.session_state.upgrade_levels["Super Pickaxe"] * 1 +
+        st.session_state.upgrade_levels["Diamond Drill"] * 2 +
+        st.session_state.upgrade_levels["Emerald Drill"] * 5 +
+        st.session_state.upgrade_levels["Ruby Blaster"] * 10
+    )
     st.session_state.rocks += amount
+    st.toast(f"+{amount} rocks!")  # Nice visual feedback
 
 # Upgrades section
 st.header("Upgrades")
@@ -46,11 +52,12 @@ for upgrade in BASE_COSTS.keys():
     cost = calculate_cost(upgrade)
     col1, col2 = st.columns([3, 1])
     with col1:
-        if st.button(
-            f"{upgrade} (Lv {st.session_state.upgrade_levels[upgrade]+1}) - {cost} rocks",
-            disabled=st.session_state.rocks < cost,
-            key=f"buy_{upgrade}"
-        ):
+       disabled = st.session_state.rocks < cost
+if disabled:
+    st.button(f"{upgrade} (Lv {level+1}) - {cost} rocks", disabled=True)
+else:
+    if st.button(f" {upgrade} (Lv {level+1}) - {cost} rocks"):
+        # Purchase logic here
             st.session_state.rocks -= cost
             st.session_state.upgrade_levels[upgrade] += 1
             st.rerun()
@@ -62,7 +69,7 @@ for upgrade in BASE_COSTS.keys():
 if st.session_state.upgrade_levels["Auto Miner"] > 0:
     time.sleep(1)
     st.session_state.rocks += st.session_state.upgrade_levels["Auto Miner"]
-    st.rerun()
+    st.experimental_rerun()  # Smoother refresh
 
 # Update display every interaction
 rocks_display.header(f"Rocks: {st.session_state.rocks}")
