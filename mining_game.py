@@ -23,7 +23,7 @@ BASE_COSTS = {
 }
 
 def calculate_cost(upgrade):
-    return int(BASE_COSTS[upgrade] * (1.5 ** st.session_state.upgrade_levels[upgrade])
+    return int(BASE_COSTS[upgrade] * (1.5 ** st.session_state.upgrade_levels[upgrade]))
 
 # --- UI Layout ---
 st.title("⛏️ The Mindless Miner")
