@@ -48,25 +48,25 @@ st.subheader("Upgrades")
 for upgrade, cost in UPGRADE_COSTS.items():
     col1, col2 = st.columns([3, 1])
     with col1:
+        # Only show button if not purchased
         if not st.session_state.upgrade_active[upgrade]:
             if st.button(
                 f"Buy {upgrade} ({cost} rocks)",
                 disabled=(st.session_state.rocks < cost),
-                type="primary" if st.session_state.rocks >= cost else "secondary"
+                type="primary" if st.session_state.rocks >= cost else "secondary",
+                key=f"buy_{upgrade}"  # Added unique key
             ):
                 st.session_state.rocks -= cost
                 st.session_state.upgrade_active[upgrade] = True
-                # Handle special upgrades
                 if upgrade == "Auto Miner":
                     st.session_state.auto_miners += 1
-                elif upgrade == "Ruby Blaster":  # NEW: Added this handler
+                elif upgrade == "Ruby Blaster":
                     st.session_state.ruby_blasters += 1
-                st.success(f"Purchased {upgrade}!")
-                st.rerun()
+                st.rerun()  # This will make the button disappear instantly
     with col2:
         if st.session_state.upgrade_active[upgrade]:
             st.success("✔️ Owned")
-
+            
 # Combined auto-mining logic (NEW: More efficient)
 if st.session_state.upgrade_active["Auto Miner"] or st.session_state.upgrade_active["Ruby Blaster"]:
     time.sleep(0.5)  # Single timer
