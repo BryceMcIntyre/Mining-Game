@@ -1,7 +1,30 @@
 import streamlit as st
 import time
+import pandas as pd
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 # Initialize game state
+if not firebase_admin._apps:
+    cred = credentials.Certificate("firebase-key.json")  # Download from Firebase console
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+# Save/Load scores
+def update_leaderboard(name, score):
+    db.collection("scores").document(name).set({"score": score})
+
+def get_leaderboard():
+    return pd.DataFrame([doc.to_dict() for doc in db.collection("scores").stream()])
+
+# UI
+name = st.text_input("Your name")
+if st.button("Submit score"):
+    update_leaderboard(name, st.session_state.rocks)
+st.write("Leaderboard:", get_leaderboard().sort_values("score", ascending=False))
+
+#actually starting the game
 if 'rocks' not in st.session_state:
     st.session_state.rocks = 0
     st.session_state.upgrade_levels = {
