@@ -25,7 +25,7 @@ def calculate_cost(upgrade):
     return int(BASE_COSTS[upgrade] * (1.5 ** st.session_state.upgrade_levels[upgrade]))
 
 # --- UI ---
-st.title("Mining Game: Balanced Edition")
+st.title("The Mindless Miner")
 
 # Mining
 if st.button("⛏️ Mine"):
