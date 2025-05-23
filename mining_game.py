@@ -1,10 +1,11 @@
 import streamlit as st
 import time
 
-# Initialize game state (Streamlit uses 'session_state' to remember variables)
+# Initialize game state 
 if 'rocks' not in st.session_state:
     st.session_state.rocks = 0
     st.session_state.auto_miners = 0
+    st.session_state.ruby_blasters = 0  # NEW: Added this counter
     st.session_state.upgrade_active = {
         "Auto Miner": False,
         "Super Pickaxe": False,
@@ -37,15 +38,16 @@ if st.button("⛏️ Mine Rock", key="mine"):
         amount += 3
     if st.session_state.upgrade_active["Emerald Drill"]:
         amount += 15
+    if st.session_state.upgrade_active["Ruby Blaster"]:  # NEW: Added this bonus
+        amount += 50
     st.session_state.rocks += amount
-    st.rerun()  # Refresh the UI
+    st.rerun()
 
 # Upgrades section
 st.subheader("Upgrades")
 for upgrade, cost in UPGRADE_COSTS.items():
     col1, col2 = st.columns([3, 1])
     with col1:
-        # Show upgrade button if not purchased
         if not st.session_state.upgrade_active[upgrade]:
             if st.button(
                 f"Buy {upgrade} ({cost} rocks)",
@@ -54,29 +56,22 @@ for upgrade, cost in UPGRADE_COSTS.items():
             ):
                 st.session_state.rocks -= cost
                 st.session_state.upgrade_active[upgrade] = True
+                # Handle special upgrades
                 if upgrade == "Auto Miner":
                     st.session_state.auto_miners += 1
-                st.success(f"Purchased {upgrade}!")
-                st.rerun()
-
-                st.session_state.rocks -= cost
-                st.session_state.upgrade_active[upgrade] = True
-                if upgrade == "Ruby Blaster":
+                elif upgrade == "Ruby Blaster":  # NEW: Added this handler
                     st.session_state.ruby_blasters += 1
                 st.success(f"Purchased {upgrade}!")
                 st.rerun()
-                
     with col2:
         if st.session_state.upgrade_active[upgrade]:
             st.success("✔️ Owned")
 
-# Auto-miner logic (runs every second)
-if st.session_state.upgrade_active["Auto Miner"]:
-    time.sleep(1)  # Wait 1 second
-    st.session_state.rocks += st.session_state.auto_miners
-    st.rerun()
-    
-if st.session_state.upgrade_active["Ruby Blaster"]:
-    time.sleep(0.1)  # Wait 1 second
-    st.session_state.rocks += st.session_state.ruby_blasters
+# Combined auto-mining logic (NEW: More efficient)
+if st.session_state.upgrade_active["Auto Miner"] or st.session_state.upgrade_active["Ruby Blaster"]:
+    time.sleep(0.5)  # Single timer
+    if st.session_state.upgrade_active["Auto Miner"]:
+        st.session_state.rocks += st.session_state.auto_miners
+    if st.session_state.upgrade_active["Ruby Blaster"]:
+        st.session_state.rocks += st.session_state.ruby_blasters * 10  # Ruby gives 10x boost!
     st.rerun()
